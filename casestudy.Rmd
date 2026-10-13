@@ -1,0 +1,87 @@
+---
+title: "casestudy"
+author: "sr4354"
+date: "2026-10-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(p8105.datasets)
+data(nyc_airbnb)
+
+library(tidyverse)
+library(leaflet)
+
+```
+
+## some questions
+* where are the most expensive airbnbs in nyc?
+* which neighbourhood has the highest concentration of airbnbs?
+* which one is the cheapest? 
+* which airbnb hosts are the most/best reviewed?
+* has the number increased or decreased over time? 
+* do airbnbs affect rent in their neighborhoods?
+
+```{r}
+nyc_airbnb |>
+  count(room_type, neighbourhood_group) |>
+  pivot_wider(
+    names_from = room_type,
+    values_from = n
+  )
+```
+
+```{r}
+nyc_airbnb |> 
+  mutate(price_rank = min_rank(desc((price)))) |> 
+  filter(price_rank < 10) |> view()
+```
+
+
+```{r}
+nyc_airbnb |> 
+  mutate(price_rank = min_rank(desc((price)))) |> 
+  filter(price_rank < 10) |> view()
+```
+
+```{r}
+nyc_airbnb |>
+  filter(neighbourhood_group == "Manhattan") |>
+  filter(price < 500) |>
+  ggplot(aes(x = neighbourhood, y = price)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+## visualize price some more 
+```{r}
+nyc_airbnb |>
+  filter(neighbourhood_group == "Manhattan") |>
+  filter(room_type == "Entire home/apt") |>
+  filter(price < 500) |>
+  ggplot(aes(x = lat, y = long, color = price)) +
+  geom_point(alpha = .5)
+```
+make a leaflet map
+
+```{r}
+pal = colorNumeric(
+  palette = "viridis",
+  domain = 1:500
+)
+```
+
+
+```{r}
+nyc_airbnb |>
+  filter(neighbourhood_group == "Manhattan") |>
+  filter(room_type == "Entire home/apt") |>
+  filter(price < 500) |>
+  sample_n(50) |>
+  leaflet() |>
+  addTiles() |>
+  addCircleMarkers(
+    ~lat, ~long, color = ~pal(stars), radius = .5)
+```
+
